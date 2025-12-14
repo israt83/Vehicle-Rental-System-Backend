@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import { pool } from "../../database/db";
 import jwt from "jsonwebtoken"
+import config from "../../config";
 
 const signupUser = async (payload : Record<string , any>) =>{
   const { name, email, password, phone, role  } = payload;
@@ -36,7 +37,7 @@ if(!matchPassword){
   throw new Error('Invalid credentials')
 }
 
-const secret = 'hrefgsldffggfg'
+const secret = config.jwtSecret;
 
 const token = jwt.sign({
   id : user.id,
@@ -48,7 +49,7 @@ const token = jwt.sign({
 
 delete user.password;
 
-return {user , token}
+return {token,user }
    
 }
 
