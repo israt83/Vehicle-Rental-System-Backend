@@ -4,10 +4,12 @@ import { vehicleService } from "./vehicles.service"
 const addVehicles = async(req: Request , res : Response)=>{
         try {
             const result = await vehicleService.addVehicles(req.body);
+            const vehicle = result.rows[0];
+            vehicle.daily_rent_price = Number(vehicle.daily_rent_price);
             return res.status(201).json({
                 success : true,
                 message : 'Vehicles created successfully',
-                data : result.rows[0]
+                data : vehicle
             })
             
         } catch (error : any) {
