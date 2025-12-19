@@ -15,8 +15,10 @@ const verify = (...roles : string[]) =>{
         })
     }
 
-    const decoded = jwt.verify(token, config.jwtSecret as string) as JwtPayload;
+    const decoded = jwt.verify(token, config.jwtSecret as string) as JwtPayload ;
     req.user = decoded;
+
+ 
 
     if(roles.length && !roles.includes(decoded.role as string)){
         return res.status(403).json({

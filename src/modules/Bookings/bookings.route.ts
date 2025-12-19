@@ -6,7 +6,7 @@ import verify from "../../middleware/verify";
 const router = Router();
 
 router.post('/bookings',verify('customer','admin'),bookingController.createBooking);
-router.get('/bookings', bookingController.getAllBookings)
+router.get('/bookings',verify('admin' , 'customer'), bookingController.getAllBookings);
 
 
 export const bookingRoute = router

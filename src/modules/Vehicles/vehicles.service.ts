@@ -60,8 +60,8 @@ const deleteVehicle = async (vehicleId: number) => {
     throw new Error("Vehicle not found");
   }
 //   status check
-  if (vehicle.rows[0].availability_status === "active") {
-    throw new Error("Vehicle is already active");
+  if (vehicle.rows[0].availability_status === "booked") {
+    throw new Error("Vehicle is already booked");
   }
 
   const result = await pool.query(

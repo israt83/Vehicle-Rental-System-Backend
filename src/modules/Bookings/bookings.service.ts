@@ -73,8 +73,16 @@ const createBooking = async (payload: Record<string, any>) => {
 
   return bookingData;
 };
-const getAllBookings = async () =>{
-
+const getAllBookings = async (role : string , id : number) =>{
+    if(role === 'admin'){
+        const result = await pool.query(`SELECT * FROM bookings`)
+        return result.rows;
+    }else if (role == 'customer'){
+        const result = await pool.query(`SELECT * FROM bookings WHERE customer_id = $1`,[id])
+        return result.rows;
+    }else{
+        throw new Error('Unauthorized access')
+    }
 }
 
 export const bookingService = {
