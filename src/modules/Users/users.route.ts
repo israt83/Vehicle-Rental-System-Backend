@@ -8,5 +8,6 @@ const route = Router();
 route.get('/users', verify('admin') ,userController.getAllUser)
 
 route.put('/users/:userId' ,verify('admin' , 'customer'), userController.updateUser)
+route.delete('/users/:userId',verify('admin') , userController.deleteUser)
 
 export const userRoute = route

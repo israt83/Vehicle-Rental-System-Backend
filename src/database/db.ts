@@ -1,5 +1,12 @@
 import { Pool } from "pg";
 import config from "../config";
+import pg from "pg";
+
+
+pg.types.setTypeParser(1082, (val: string) => val);
+
+
+
 
 export const pool = new Pool({
   connectionString: `${config.connectionString}`,
@@ -35,8 +42,8 @@ CREATE TABLE IF NOT EXISTS bookings (
     id SERIAL PRIMARY KEY,
     customer_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     vehicle_id INTEGER NOT NULL REFERENCES vehicles(id) ON DELETE CASCADE,
-    rent_start_date DATE NOT NULL DEFAULT CURRENT_DATE,
-    rent_end_date DATE NOT NULL CHECK (rent_end_date > rent_start_date),
+    rent_start_date DATE DEFAULT NOW(),
+    rent_end_date DATE DEFAULT NOW(),
     total_price NUMERIC(10, 2) NOT NULL CHECK (total_price > 0),
     status VARCHAR(20) NOT NULL CHECK (status IN ('active', 'cancelled', 'returned')));
 

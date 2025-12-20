@@ -34,7 +34,41 @@ const updateUser = async (
   }
 };
 
+const deleteUser = async (userId: string) => {
+  const result = await pool.query(`SELECT * FROM users WHERE id = $1`, [
+    userId,
+  ]);
+  if (result.rows.length === 0) {
+    const error = new Error("This user does not exist");
+    throw error;
+  }
+
+  const bookingResult = await pool.query(
+    `SELECT * FROM bookings WHERE customer_id = $1`,
+    [userId]
+  );
+
+  if (bookingResult.rows.length > 0) {
+    const hasActiveBooking = bookingResult.rows.some(
+      (booking) => booking.status === "active"
+    );
+    if (hasActiveBooking) {
+      const error = new Error(
+        "This user cannot be deleted because this user has an active booking"
+      );
+      throw error;
+    }
+    
+     await pool.query(
+      `DELETE FROM users WHERE id = $1 `,
+      [userId]
+    );
+
+  }
+};
+
 export const userService = {
   getAllUser,
   updateUser,
+  deleteUser,
 };

@@ -1,5 +1,5 @@
 import { pool } from "../../database/db";
-import { formatDate } from "../../utils/formateDate";
+import getNumberOfDays, { formatDate } from "../../utils/getNumberOfDays";
 
 const createBooking = async (payload: Record<string, any>) => {
   const { customer_id, vehicle_id, rent_start_date, rent_end_date } = payload;
@@ -23,19 +23,23 @@ const createBooking = async (payload: Record<string, any>) => {
     throw error;
   }
 
+  //check future date
 
-
+  if (
+    new Date(rent_end_date as string).getTime() <
+    new Date(rent_start_date as string).getTime()
+  ) {
+    throw new Error("Please select a future date");
+  }
   // price calculation
-  const startDate = new Date(rent_start_date);
-  const endDate = new Date(rent_end_date);
 
-  const numberOfDays = Math.round(
-    (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+  const numberOfDays = getNumberOfDays(
+    rent_start_date as Date,
+    rent_end_date as Date
   );
 
-  const total_price = Number(
-    vehicleInfo.rows[0].daily_rent_price * numberOfDays
-  );
+  const total_price =
+    Number(vehicleInfo.rows[0].daily_rent_price) * numberOfDays;
 
   // create booking
 
@@ -73,19 +77,102 @@ const createBooking = async (payload: Record<string, any>) => {
 
   return bookingData;
 };
-const getAllBookings = async (role : string , id : number) =>{
-    if(role === 'admin'){
-        const result = await pool.query(`SELECT * FROM bookings`)
-        return result.rows;
-    }else if (role == 'customer'){
-        const result = await pool.query(`SELECT * FROM bookings WHERE customer_id = $1`,[id])
-        return result.rows;
-    }else{
-        throw new Error('Unauthorized access')
-    }
-}
+const getAllBookings = async (role: string, id: number) => {
+  if (role === "admin") {
+    const result = await pool.query(`
+      SELECT * FROM bookings
+    `);
+    return result.rows;
+  }
+
+  if (role === "customer") {
+    const result = await pool.query(
+      `
+      SELECT * FROM bookings WHERE customer_id = $1
+      `,
+      [id]
+    );
+    return result.rows;
+  }
+
+  throw new Error("Unauthorized access");
+};
+
+const updateBooking = async (
+  bookingId: number,
+  role: string,
+  status: string
+) => {
+  const bookingResult = await pool.query(
+    `SELECT * FROM bookings WHERE id = $1`,
+    [bookingId]
+  );
+  if (bookingResult.rows.length === 0)
+    throw new Error("This booking does not exist");
+
+  const booking = bookingResult.rows[0];
+  const vehicleId = booking.vehicle_id;
+
+  const now = new Date();
+  const startDate = new Date(booking.rent_start_date);
+  const endDate = new Date(booking.rent_end_date);
+
+  // SYSTEM AUTO RETURN
+  if (now > endDate) {
+    const updatedBooking = await pool.query(
+      `UPDATE bookings SET status = 'returned' WHERE id = $1 RETURNING *`,
+      [bookingId]
+    );
+    const updatedVehicle = await pool.query(
+      `UPDATE vehicles SET availability_status = 'available' WHERE id = $1 RETURNING availability_status`,
+      [vehicleId]
+    );
+    return {
+      action: "auto",
+      data: updatedBooking.rows[0],
+      vehicle: updatedVehicle.rows[0],
+    };
+  }
+
+  // CUSTOMER CANCEL
+  if (role === "customer") {
+    if (status !== "cancelled")
+      throw new Error("Customer can only cancel booking");
+    if (now >= startDate)
+      throw new Error("Booking cannot be cancelled after start date");
+
+    const cancelledBooking = await pool.query(
+      `UPDATE bookings SET status = 'cancelled' WHERE id = $1 RETURNING *`,
+      [bookingId]
+    );
+    return { action: "cancelled", data: cancelledBooking.rows[0] };
+  }
+
+  // ADMIN RETURN
+  if (role === "admin") {
+    if (status !== "returned")
+      throw new Error("Admin can only mark booking as returned");
+
+    const returnedBooking = await pool.query(
+      `UPDATE bookings SET status = 'returned' WHERE id = $1 RETURNING *`,
+      [bookingId]
+    );
+    const updatedVehicle = await pool.query(
+      `UPDATE vehicles SET availability_status = 'available' WHERE id = $1 RETURNING availability_status`,
+      [vehicleId]
+    );
+    return {
+      action: "returned",
+      data: returnedBooking.rows[0],
+      vehicle: updatedVehicle.rows[0],
+    };
+  }
+
+  throw new Error("Unauthorized action");
+};
 
 export const bookingService = {
   createBooking,
-  getAllBookings
+  getAllBookings,
+  updateBooking,
 };
