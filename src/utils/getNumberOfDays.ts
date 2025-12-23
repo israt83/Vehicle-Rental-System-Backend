@@ -1,9 +1,9 @@
 export const formatDate = (date: string | Date) => {
-  return new Date(date).toLocaleDateString("en-CA"); // YYYY-MM-DD
+  return new Date(date).toLocaleDateString("en-CA"); 
 };
 
 const getNumberOfDays = (startDate: Date, endDate: Date) => {
-  // console.log(startDate, endDate, "result*****datae");
+
   const rent_start_date = new Date(startDate);
   const rent_end_date = new Date(endDate);
   const diffMs = rent_end_date.getTime() - rent_start_date.getTime();

@@ -117,7 +117,7 @@ const updateBooking = async (
   const startDate = new Date(booking.rent_start_date);
   const endDate = new Date(booking.rent_end_date);
 
-  // SYSTEM AUTO RETURN
+
   if (now > endDate) {
     const updatedBooking = await pool.query(
       `UPDATE bookings SET status = 'returned' WHERE id = $1 RETURNING *`,
