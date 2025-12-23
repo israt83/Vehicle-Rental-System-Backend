@@ -2,7 +2,7 @@
 
 A backend API for managing vehicles, users, and bookings.
 
-🔗 **Live URL:** https://b6-a2-express-jwt.vercel.app/
+🔗 **Live URL:** https://vehicle-rental-system-psi-ivory.vercel.app
 
 🔗 **Repository URL:**  https://github.com/israt83/L2-Assignment-2
 

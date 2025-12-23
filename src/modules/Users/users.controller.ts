@@ -33,7 +33,7 @@ const updateUser = async (req: Request, res: Response) => {
     if (loggedInUser.role !== "admin" && req.body.role) {
       return res
         .status(403)
-        .json({ success: false, message: "Only admin can change role" });
+        .json({ success: false, message: "Only admin can change " });
     }
 
     const result = await userService.updateUser(
@@ -45,7 +45,7 @@ const updateUser = async (req: Request, res: Response) => {
     if (result.rowCount === 0) {
       return res.status(404).json({
         success: false,
-        message: "User not found",
+        message: "This user does not exists.",
       });
     }
 

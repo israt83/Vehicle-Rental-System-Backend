@@ -8,31 +8,79 @@ const getAllUser = async () => {
   return result;
 };
 
+// const updateUser = async (
+//   payload: Record<string, any>,
+//   userId: number,
+//   tokenRole: string
+// ) => {
+//   if (Object.keys(payload).length === 0) {
+//     throw new Error("No data update");
+//   }
+//   const { name, email, phone, role } = payload;
+//   if (tokenRole !== "admin" && role) {
+//     throw new Error("Unauthorized: Only admin can change role");
+//   }
+
+//   if (tokenRole === "admin") {
+//     return await pool.query(
+//       `UPDATE users SET name = $1 , email = $2 , phone = $3 , role = $4 WHERE id = $5 RETURNING id name , email , phone , role `,
+//       [name, email, phone, role, userId]
+//     );
+//   } else {
+//     return await pool.query(
+//       `UPDATE users SET name = $1 , email = $2 , phone = $3 WHERE id = $4 RETURNING id, name , email, phone , role `,
+//       [name, email, phone, userId]
+//     );
+//   }
+// };
+
 const updateUser = async (
   payload: Record<string, any>,
   userId: number,
   tokenRole: string
 ) => {
   if (Object.keys(payload).length === 0) {
-    throw new Error("No data update");
+    throw new Error("No data to update");
   }
-  const { name, email, phone, role } = payload;
-  if (tokenRole !== "admin" && role) {
+
+  // role permission check
+  if (payload.role && tokenRole !== "admin") {
     throw new Error("Unauthorized: Only admin can change role");
   }
 
-  if (tokenRole === "admin") {
-    return await pool.query(
-      `UPDATE users SET name = $1 , email = $2 , phone = $3 , role = $4 WHERE id = $5 RETURNING id name , email , phone , role `,
-      [name, email, phone, role, userId]
-    );
-  } else {
-    return await pool.query(
-      `UPDATE users SET name = $1 , email = $2 , phone = $3 WHERE id = $4 RETURNING id, name , email, phone , role `,
-      [name, email, phone, userId]
-    );
+  const allowedFields =
+    tokenRole === "admin"
+      ? ["name", "email", "phone", "role"]
+      : ["name", "email", "phone"];
+
+  const fields: string[] = [];
+  const values: any[] = [];
+  let index = 1;
+
+  for (const key of allowedFields) {
+    if (payload[key] !== undefined) {
+      fields.push(`${key} = $${index}`);
+      values.push(payload[key]);
+      index++;
+    }
   }
+
+  if (fields.length === 0) {
+    throw new Error("No valid fields to update");
+  }
+
+  values.push(userId);
+
+  const query = `
+    UPDATE users
+    SET ${fields.join(", ")}
+    WHERE id = $${index}
+    RETURNING id, name, email, phone, role
+  `;
+
+  return await pool.query(query, values);
 };
+
 
 const deleteUser = async (userId: string) => {
   const result = await pool.query(`SELECT * FROM users WHERE id = $1`, [
