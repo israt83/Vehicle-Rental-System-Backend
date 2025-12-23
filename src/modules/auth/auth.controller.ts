@@ -10,7 +10,7 @@ const signupUser = async (req: Request, res: Response) => {
       data: result.rows[0],
     });
   } catch (error: any) {
-    return res.status(500).json({
+    return res.status(error.statusCode || 500).json({
       success: false,
       message: error.message,
     });
@@ -27,7 +27,7 @@ const loginUser = async (req: Request, res: Response) => {
       data : result
     });
   } catch (error: any) {
-    return res.status(500).json({
+    return res.status(error.statusCode || 500).json({
       success: false,
       message: error.message,
     });

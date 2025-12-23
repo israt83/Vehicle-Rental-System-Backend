@@ -57,6 +57,7 @@ const deleteUser = async (userId: string) => {
         "This user cannot be deleted because this user has an active booking"
       );
       throw error;
+
     }
     
      await pool.query(
