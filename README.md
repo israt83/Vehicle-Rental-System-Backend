@@ -4,7 +4,7 @@ A backend API for managing vehicles, users, and bookings.
 
 🔗 **Live URL:** https://vehicle-rental-system-psi-ivory.vercel.app
 
-🔗 **Repository URL:**  https://github.com/israt83/L2-Assignment-2
+🔗 **Repository URL:**  https://github.com/israt83/Vehicle-Rental-System-Backend
 
 ---
 
